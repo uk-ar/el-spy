@@ -54,14 +54,76 @@
       )
     ))
 
-;;; how to use
-;; (with-mock2
-;;  (defmock test3 (a b)
-;;    (message "%d:%d" a b))
-;;  (test3 1 2)
-;;  (test3 3 4)
-;;  (should (eq (el-spec:called-count 'test3) 2))
-;;  (should (equal (el-spec:args-for-call 'test3) '((1 2) (3 4))))
+;; test for test-double
+(defun test1 (a b) 'test1-original)
+(defun test2 (a b) 'test2-original)
+
+(ert-deftest simple ()
+  (should (eq (test1 1 2) 'test1-original))
+  (should (equal (el-spec:get-args 'test1) nil))
+  (with-mock2
+    (defmock test1 (a b) 'test1-mock)
+
+    (should (eq (test1 1 2) 'test1-mock))
+    (should (eq (el-spec:called-count 'test1) 1))
+    (should (equal (el-spec:get-args 'test1) '((1 2))))
+
+    (should (eq (test1 3 4) 'test1-mock))
+    (should (eq (el-spec:called-count 'test1) 2))
+    (should (equal (el-spec:get-args 'test1) '((1 2) (3 4))))
+    )
+  (should (eq (test1 1 2) 'test1-original))
+  (should (equal (el-spec:get-args 'test1) nil))
+  )
+
+(ert-deftest interactive ()
+  (should (eq (test1 1 2) 'test1-original))
+  (should (equal (el-spec:get-args 'test1) nil))
+  (with-mock2
+    (defmock test1 (a b)
+             (interactive)
+             'test1-mock)
+    (defmock test2 (a b)
+             'test2-mock)
+
+    (should (commandp 'test1))
+    (should-not (commandp 'test2))
+
+    (should (eq (test1 1 2) 'test1-mock))
+    (should (eq (test2 3 4) 'test2-mock))
+    (should (equal (el-spec:get-args 'test1) '((1 2))))
+    (should (equal (el-spec:get-args 'test2) '((3 4))))
+
+    (should (eq (test1 3 4) 'test1-mock))
+    (should (eq (test2 5 6) 'test2-mock))
+    (should (equal (el-spec:get-args 'test1) '((1 2) (3 4))))
+    (should (equal (el-spec:get-args 'test2) '((3 4) (5 6))))
+    )
+  (should (eq (test1 1 2) 'test1-original))
+  (should (equal (el-spec:get-args 'test1) nil))
+  )
+
+(ert-deftest simple-error ()
+  (should (eq (test1 1 2) 'test1-original))
+  (should (equal (el-spec:get-args 'test1) nil))
+  (should-error
+   (with-mock2
+     (defmock test1 (a b) 'test1-mock)
+
+     (should (eq (test1 1 2) 'test1-mock))
+     (should (equal (el-spec:get-args 'test1) '((1 2))))
+
+     (should (eq (test1 3 4) 'test1-mock))
+     (should (equal (el-spec:get-args 'test1) '((1 2) (3 4))))
+     ))
+  (should (eq (test1 1 2) 'test1-original))
+  (should (equal (el-spec:get-args 'test1) nil))
+  )
+
+;; el-mock limitation
+;; (with-mock
+;;   (mock (test1) :times 0)
+;;   (call-interactively 'test1);; error
 ;;  )
 
 (provide 'test-double)
