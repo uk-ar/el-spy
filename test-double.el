@@ -62,11 +62,33 @@
         ,@body)
       )))
 
+(defun el-spec:make-returns-keylist (list default)
+  (append
+   (let ((i 0))
+     (mapcar (lambda (elem) (list (incf i) elem)) list))
+   `((t ,default))))
+
+(defun el-spec:make-args-keylist (arg list default)
+  (el-spec:make-returns-keylist
+   (mapcar (lambda (elem) (list 'should `(equal ,arg ,elem))) list) 6)
+  )
+
+(defmacro el-spec:returns (list default)
+  `(case (el-spec:called-count el-spec:func-name)
+     ,@(el-spec:make-returns-keylist list default)))
+
+(defmacro el-spec:args (symbol list default)
+  `(case (el-spec:called-count el-spec:func-name)
+     ,@(el-spec:make-args-keylist symbol list default)))
+
 ;; test for test-double
 (defun test1 (a b) 'test1-original)
 (defun test2 (a b) 'test2-original)
 
-(ert-deftest simple ()
+(defadvice test1 (around test1-ad () disable)
+  (setq ad-return-value 'test1-advice))
+
+(ert-deftest simple ();; spy
   (should (eq (test1 1 2) 'test1-original))
   (should (equal (el-spec:get-args 'test1) nil))
   (with-mock2
