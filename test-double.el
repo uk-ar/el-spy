@@ -43,6 +43,8 @@
 (defun el-spec:called-count (symbol)
   (length (el-spec:get-args symbol)))
 
+(defvar el-spec:func-name nil)
+
 (defmacro defmock (symbol arglist &rest body)
   (declare (indent defun) (debug t))
   `(progn
@@ -51,6 +53,7 @@
      (ad-safe-fset
       ',symbol
       (lambda ,arglist
+        (setq el-spec:func-name ',symbol)
         (el-spec:append-args ',symbol (list (mapcar 'symbol-value ',arglist)))
         ;; If body include interactive, it works well.
         ;; Undocumented behavior?
