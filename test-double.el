@@ -27,6 +27,7 @@
 
 (defun el-spec:get-args (symbol)
   (get symbol 'el-spec:args))
+(defalias 'el-spec:args-for-call 'el-spec:get-args)
 
 (defun el-spec:put-args (symbol args)
   (put symbol 'el-spec:args args))
