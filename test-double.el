@@ -1,5 +1,8 @@
 
 (require 'advice)
+(require 'cl)
+;;for should in el-spec:make-args-keylist
+(require 'ert)
 
 (defun el-spec:setup-mock (funcsym)
   (el-spec:put-args funcsym nil)
