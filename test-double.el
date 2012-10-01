@@ -57,11 +57,10 @@
       (lambda ,arglist
         (setq el-spec:func-name ',symbol)
         (el-spec:append-args ',symbol (list (mapcar 'symbol-value ',arglist)))
-        ;; If body include interactive, it works well.
+        ;; Even if body include interactive, it works well.
         ;; Undocumented behavior?
         ,@body)
-      )
-    ))
+      )))
 
 ;; test for test-double
 (defun test1 (a b) 'test1-original)
