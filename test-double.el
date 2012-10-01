@@ -9,9 +9,12 @@
   (when (fboundp funcsym)
     (put funcsym 'el-spec:original-func (symbol-function funcsym))))
 
+(defun el-spec:get-original-func (symbol)
+  (get symbol 'el-spec:original-func))
+
 (defun el-spec:teardown-mock (funcsym)
   (el-spec:put-args funcsym nil)
-  (let ((func (get funcsym 'el-spec:original-func)))
+  (let ((func (el-spec:get-original-func funcsym)))
     (if func
         (ad-safe-fset funcsym func)
       (fmakunbound funcsym))))
@@ -81,79 +84,9 @@
   `(case (el-spec:called-count el-spec:func-name)
      ,@(el-spec:make-args-keylist symbol list default)))
 
-;; test for test-double
-(defun test1 (a b) 'test1-original)
-(defun test2 (a b) 'test2-original)
-
-(defadvice test1 (around test1-ad () disable)
-  (setq ad-return-value 'test1-advice))
-
-(ert-deftest simple ();; spy
-  (should (eq (test1 1 2) 'test1-original))
-  (should (equal (el-spec:get-args 'test1) nil))
-  (with-mock2
-    (defmock test1 (a b) 'test1-mock)
-
-    (should (eq (test1 1 2) 'test1-mock))
-    (should (eq (el-spec:called-count 'test1) 1))
-    (should (equal (el-spec:get-args 'test1) '((1 2))))
-
-    (should (eq (test1 3 4) 'test1-mock))
-    (should (eq (el-spec:called-count 'test1) 2))
-    (should (equal (el-spec:get-args 'test1) '((1 2) (3 4))))
-    )
-  (should (eq (test1 1 2) 'test1-original))
-  (should (equal (el-spec:get-args 'test1) nil))
-  )
-
-(ert-deftest interactive ()
-  (should (eq (test1 1 2) 'test1-original))
-  (should (equal (el-spec:get-args 'test1) nil))
-  (with-mock2
-    (defmock test1 (a b)
-             (interactive)
-             'test1-mock)
-    (defmock test2 (a b)
-             'test2-mock)
-
-    (should (commandp 'test1))
-    (should-not (commandp 'test2))
-
-    (should (eq (test1 1 2) 'test1-mock))
-    (should (eq (test2 3 4) 'test2-mock))
-    (should (equal (el-spec:get-args 'test1) '((1 2))))
-    (should (equal (el-spec:get-args 'test2) '((3 4))))
-
-    (should (eq (test1 3 4) 'test1-mock))
-    (should (eq (test2 5 6) 'test2-mock))
-    (should (equal (el-spec:get-args 'test1) '((1 2) (3 4))))
-    (should (equal (el-spec:get-args 'test2) '((3 4) (5 6))))
-    )
-  (should (eq (test1 1 2) 'test1-original))
-  (should (equal (el-spec:get-args 'test1) nil))
-  )
-
-(ert-deftest simple-error ()
-  (should (eq (test1 1 2) 'test1-original))
-  (should (equal (el-spec:get-args 'test1) nil))
-  (should-error
-   (with-mock2
-     (defmock test1 (a b) 'test1-mock)
-
-     (should (eq (test1 1 2) 'test1-mock))
-     (should (equal (el-spec:get-args 'test1) '((1 2))))
-
-     (should (eq (test1 3 4) 'test1-mock))
-     (should (equal (el-spec:get-args 'test1) '((1 2) (3 4))))
-     ))
-  (should (eq (test1 1 2) 'test1-original))
-  (should (equal (el-spec:get-args 'test1) nil))
-  )
-
 ;; el-mock limitation
 ;; (with-mock
 ;;   (mock (test1) :times 0)
 ;;   (call-interactively 'test1);; error
 ;;  )
-
 (provide 'test-double)
