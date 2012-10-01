@@ -40,7 +40,7 @@
   (length (el-spec:get-args symbol)))
 
 (defmacro defmock (symbol arglist &rest body)
-  (declare (indent 0) (debug t))
+  (declare (indent defun) (debug t))
   `(progn
      (push ',symbol el-spec:original-func)
      (el-spec:setup-mock ',symbol)
