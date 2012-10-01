@@ -48,6 +48,8 @@
 (defmacro defmock (symbol arglist &rest body)
   (declare (indent defun) (debug t))
   `(progn
+     (unless (boundp 'el-spec:original-func)
+       (error "not in with-mock"))
      (push ',symbol el-spec:original-func)
      (el-spec:setup-mock ',symbol)
      (ad-safe-fset
