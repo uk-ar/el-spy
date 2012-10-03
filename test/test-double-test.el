@@ -207,6 +207,8 @@
 
      (should (eq (test1 3 4) 'test1-mock))
      (should (equal (el-spec:get-args 'test1) '((1 2) (3 4))))
+
+     (test1 2 3 4)
      )
    :type 'wrong-number-of-arguments)
   (should (eq (test1 1 2) 'test1-original))
