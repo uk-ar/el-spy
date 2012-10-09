@@ -5,6 +5,6 @@ if [ -z "$EMACS" ]; then
 fi
 
 
-$EMACS -batch -q -l test-double.el -l test/test-double-test.el -f ert-run-tests-batch-and-exit
+$EMACS -batch -q -l el-spy.el -l test/el-spy-test.el -f ert-run-tests-batch-and-exit
 
 
