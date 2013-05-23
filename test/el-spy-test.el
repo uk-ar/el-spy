@@ -1,17 +1,18 @@
 (require 'ert)
 (require 'el-spy)
-
-;; test for el-spy
+;; setup
+;; the reason for not using string is string need string=
 (defun test1 (a b) 'test1-original)
 (defun test2 (a b) 'test2-original)
 
 (defadvice test1 (around test1-ad () disable)
   (setq ad-return-value 'test1-advice))
-
+;; test for el-spy
 (ert-deftest simple ();; spy
   (should (eq (test1 1 2) 'test1-original))
   (should (equal (el-spy:get-args 'test1) nil))
-  (with-mock2
+  (with-el-spy
+    (should (eq (el-spy:called-count 'test1) 0))
     (defmock test1 (a b) 'test1-mock)
 
     (should (eq (test1 1 2) 'test1-mock))
@@ -29,7 +30,7 @@
 (ert-deftest proxy ()
   (should (eq (test1 1 2) 'test1-original))
   (should (equal (el-spy:get-args 'test1) nil))
-  (with-mock2
+  (with-el-spy
     (defmock test1 (a b)
       (funcall (el-spy:get-original-func 'test1) a b))
 
@@ -52,7 +53,7 @@
   (unwind-protect
       (progn
         (should (eq (test1 2 2) 'test1-advice))
-        (with-mock2
+        (with-el-spy
 
           (defmock test1 (a b) 'test1-mock)
 
@@ -80,7 +81,7 @@
   (unwind-protect
       (progn
         (should (eq (test1 2 2) 'test1-advice))
-        (with-mock2
+        (with-el-spy
 
           (defmock test1 (a b) 'test1-mock)
 
@@ -108,7 +109,7 @@
   (should (eq (test1 1 1) 'test1-original))
   (unwind-protect
       (progn
-        (with-mock2
+        (with-el-spy
 
           (defmock test1 (a b) 'test1-mock)
 
@@ -135,7 +136,7 @@
 (ert-deftest interactive ()
   (should (eq (test1 1 2) 'test1-original))
   (should (equal (el-spy:get-args 'test1) nil))
-  (with-mock2
+  (with-el-spy
     (defmock test1 (a b)
       (interactive)
       'test1-mock)
@@ -163,7 +164,7 @@
   (should (eq (test1 1 2) 'test1-original))
   (should (equal (el-spy:get-args 'test1) nil))
   (should-error
-   (with-mock2
+   (with-el-spy
      (defmock test1 (a b) 'test1-mock)
 
      (should (eq (test1 1 3) 'test1-mock))
@@ -181,7 +182,7 @@
   (should (eq (test1 1 2) 'test1-original))
   (should (equal (el-spy:get-args 'test1) nil))
   (should-error
-   (with-mock2
+   (with-el-spy
      (defmock test1 (a b) 'test1-mock)
 
      (should (eq (test1 1 2) 'test1-mock))
@@ -199,7 +200,7 @@
   (should (eq (test1 1 2) 'test1-original))
   (should (equal (el-spy:get-args 'test1) nil))
   (should-error
-   (with-mock2
+   (with-el-spy
      (defmock test1 (a b) 'test1-mock)
 
      (should (eq (test1 1 2) 'test1-mock))
@@ -218,7 +219,7 @@
 (ert-deftest get-func-name ()
   (should (eq (test1 1 2) 'test1-original))
   (should (equal (el-spy:get-args 'test1) nil))
-  (with-mock2
+  (with-el-spy
     (defmock test1 (a b)
       el-spy:func-name)
     (should (eq (test1 3 4) 'test1)))
@@ -229,7 +230,7 @@
 (ert-deftest precheck-args ()
   (should (eq (test1 1 2) 'test1-original))
   (should (equal (el-spy:get-args 'test1) nil))
-  (with-mock2
+  (with-el-spy
     (defmock test1 (a b)
       (should (eq a 1)))
     (should (eq (test1 1 2) t))
@@ -243,7 +244,7 @@
 (ert-deftest sequensial-return1 ()
   (should (eq (test1 1 2) 'test1-original))
   (should (equal (el-spy:get-args 'test1) nil))
-  (with-mock2
+  (with-el-spy
     (defmock test1 (a b)
       (case (el-spy:called-count el-spy:func-name)
         (1 "a")
@@ -267,7 +268,7 @@
 (ert-deftest sequensial-args ()
   (should (eq (test1 1 2) 'test1-original))
   (should (equal (el-spy:get-args 'test1) nil))
-  (with-mock2
+  (with-el-spy
     (defmock test1 (a b)
       (el-spy:args a (1 3 5) "c")
       )
@@ -281,7 +282,7 @@
 (ert-deftest sequensial-return2 ()
   (should (eq (test1 1 2) 'test1-original))
   (should (equal (el-spy:get-args 'test1) nil))
-  (with-mock2
+  (with-el-spy
     (defmock test1 (a b)
       (el-spy:returns ("a" "b") "c"))
     (should (equal (test1 1 2) "a"))
@@ -294,7 +295,7 @@
 (ert-deftest sequensial-return-not-over ()
   (should (eq (test1 1 2) 'test1-original))
   (should (equal (el-spy:get-args 'test1) nil))
-  (with-mock2
+  (with-el-spy
     (defmock test1 (a b)
       (el-spy:returns ("a" "b") (should nil)))
     (should (equal (test1 1 2) "a"))

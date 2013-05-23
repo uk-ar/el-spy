@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z "$EMACS" ]; then
-    $EMACS=emacs
+    EMACS=emacs
 fi
 
 

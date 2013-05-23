@@ -1,3 +1,45 @@
+;;; el-spy.el --- Mocking framework for Emacs lisp. It also support spy, proxy.
+
+;;-------------------------------------------------------------------
+;;
+;; Copyright (C) 2012 Yuuki Arisawa
+;;
+;; This file is NOT part of Emacs.
+;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2 of
+;; the License, or (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be
+;; useful, but WITHOUT ANY WARRANTY; without even the implied
+;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+;; PURPOSE.  See the GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public
+;; License along with this program; if not, write to the Free
+;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+;; MA 02111-1307 USA
+;;
+;;-------------------------------------------------------------------
+
+;; Author: Yuuki Arisawa <yuuki.ari@gmail.com>
+;; URL: https://github.com/uk-ar/el-spy
+;; Created: 24 Sep 20
+;; Version: 0.1
+;; Keywords: test
+
+;;; Commentary:
+
+;; ########   Compatibility   ########################################
+;;
+;; Works with Emacs-24.2
+
+;; ########   Quick start   ########################################
+;;
+;; Add to your ~/.emacs
+;;
+;; (require 'el-spy)
 
 (require 'advice)
 (require 'cl)
@@ -19,15 +61,20 @@
         (ad-safe-fset funcsym func)
       (fmakunbound funcsym))))
 
-(defmacro with-mock2 (&rest body)
+(defmacro with-el-spy (&rest body)
   (declare (indent 0) (debug t))
   `(progn
-     (let ((el-spy:original-func nil))
-       (unwind-protect
-           (progn ,@body)
-         (mapc #'el-spy:teardown-mock el-spy:original-func)
-         ))))
+     ;; macrolet
+     (letf (((symbol-function 'defmock) (symbol-function 'el-spy:defmock)))
+       (let ((el-spy:original-func nil))
+         (unwind-protect
+             (progn ,@body)
+           (mapc #'el-spy:teardown-mock el-spy:original-func)
+           )))))
 
+(defalias 'with-mock2 'with-el-spy)
+
+;; user level
 (defun el-spy:get-args (symbol)
   (get symbol 'el-spy:args))
 (defalias 'el-spy:args-for-call 'el-spy:get-args)
@@ -48,7 +95,7 @@
 
 (defvar el-spy:func-name nil)
 
-(defmacro defmock (symbol arglist &rest body)
+(defmacro el-spy:defmock (symbol arglist &rest body)
   (declare (indent defun) (debug t))
   `(progn
      (unless (boundp 'el-spy:original-func)
@@ -64,7 +111,11 @@
         ;; Undocumented behavior?
         ,@body)
       )))
-
+;; user level
+(defmacro defproxy (symbol arglist &rest body)
+  ;; todo
+  )
+;; user level
 (defun el-spy:make-returns-keylist (list default)
   (append
    (let ((i 0))
@@ -75,11 +126,11 @@
   (el-spy:make-returns-keylist
    (mapcar (lambda (elem) (list 'should `(equal ,arg ,elem))) list) 6)
   )
-
+;; user level
 (defmacro el-spy:returns (list default)
   `(case (el-spy:called-count el-spy:func-name)
      ,@(el-spy:make-returns-keylist list default)))
-
+;; user level
 (defmacro el-spy:args (symbol list default)
   `(case (el-spy:called-count el-spy:func-name)
      ,@(el-spy:make-args-keylist symbol list default)))
