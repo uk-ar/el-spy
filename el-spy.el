@@ -42,7 +42,7 @@
 ;; (require 'el-spy)
 
 (require 'advice)
-(require 'cl)
+(eval-when-compile (require 'cl))
 ;;for should in el-spy:make-args-keylist
 (require 'ert)
 
