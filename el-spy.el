@@ -41,6 +41,8 @@
 ;;
 ;; (require 'el-spy)
 
+;;; Code: section
+
 (require 'advice)
 (require 'cl)
 ;;for should in el-spy:make-args-keylist
@@ -141,3 +143,5 @@
 ;;   (call-interactively 'test1);; error
 ;;  )
 (provide 'el-spy)
+
+;;; el-spy.el ends here
